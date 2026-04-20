@@ -34,11 +34,10 @@ function switchTab(id) {
     render();
 }
 
-// 1文字ごとに再描画されないように修正
 function updateGlobalTarget(val) {
     state.globalTargetRate = Math.max(0, Math.min(100, parseFloat(val) || 0));
     saveData();
-    // ここでrender()を呼ばないことで、入力中にキーボードが閉じるのを防ぐ
+    // 入力中はrender()を呼ばず、数値だけ保存する
 }
 
 function updateSubject(id, field, val, e) {
@@ -47,7 +46,7 @@ function updateSubject(id, field, val, e) {
     if (sub) {
         if (field === 'name') {
             sub[field] = val;
-            renderTabs(); // タブ名だけ更新
+            renderTabs(); // 名前はタブに即反映させる
         } else {
             let num = Math.max(0, parseFloat(val) || 0);
             if(field === 'totalClasses' && num < (sub.present + sub.absent)) {
@@ -65,11 +64,10 @@ function changeCount(id, field, delta, e) {
     if (sub) {
         const nextVal = sub[field] + delta;
         if (delta > 0 && (sub.present + sub.absent + 1) > sub.totalClasses) return;
-        
         if (nextVal >= 0) {
             sub[field] = nextVal;
             saveData();
-            render(); // カウント変更時は数値が変わるので再描画
+            render(); // カウント変更時はUI更新が必要
         }
     }
 }
@@ -154,13 +152,7 @@ function render() {
                 ${state.subjects.length === 0 ? '<p>右下の「＋」から教科を追加してください。</p>' : `
                     <table>
                         <thead>
-                            <tr>
-                                <th>教科名</th>
-                                <th>出席率</th>
-                                <th>全コマ</th>
-                                <th>残りコマ</th>
-                                <th>許容欠席</th>
-                            </tr>
+                            <tr><th>教科名</th><th>出席率</th><th>全コマ</th><th>残り</th><th>許容欠席</th></tr>
                         </thead>
                         <tbody>${rows}</tbody>
                     </table>
@@ -200,7 +192,7 @@ function render() {
                     <div class="stat-item" style="grid-column: span 2; border-top: 1px solid #ddd; padding-top:10px;">
                         <div class="stat-label">あと何回休める？</div>
                         <div class="stat-value" style="color:${c.maxAbsentRaw < 0 ? 'var(--danger-color)' : 'var(--success-color)'}">
-                            ${c.maxAbsentRaw < 0 ? '達成不可' : c.allowAbsent + ' 回'}
+                            ${c.maxAbsentRaw < 0 ? 'もう休めません' : c.allowAbsent + ' 回'}
                         </div>
                     </div>
                 </div>
@@ -221,10 +213,7 @@ function render() {
                     </div>
                 </div>
                 
-                <p style="text-align:center; color:#777; font-size:0.8em;">
-                    合計入力数 (${sub.present + sub.absent} / ${sub.totalClasses}) 
-                    ${c.isAtLimit ? '<br><span style="color:var(--danger-color)">※全コマ数に達しました</span>' : ''}
-                </p>
+                <p style="text-align:center; color:#777; font-size:0.8em;">合計 (${sub.present + sub.absent} / ${sub.totalClasses})</p>
 
                 <button class="delete-btn" onclick="deleteSubject(${sub.id}, event)">この教科を削除する</button>
             </div>
