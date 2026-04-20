@@ -151,29 +151,3 @@ th { background: #f1f3f4; font-size: 0.85em; }
 .status-ok { color: var(--success-color); font-weight: bold; }
 .status-ng { color: var(--danger-color); font-weight: bold; }
 .impossible { background-color: #fce8e6; color: var(--danger-color); font-weight: bold; padding: 5px; border-radius: 4px; display: block; margin-top: 5px; font-size: 0.8em;}
-/* 並び替えボタンのスタイル */
-.sort-btns {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    align-items: center;
-}
-
-.sort-btn {
-    padding: 2px 8px !important;
-    font-size: 10px !important;
-    background-color: #f1f3f4 !important;
-    color: #5f6368 !important;
-    border: 1px solid var(--border-color) !important;
-    line-height: 1 !important;
-}
-
-.sort-btn:disabled {
-    opacity: 0.3 !important;
-    cursor: default !important;
-}
-
-/* テーブルの幅調整 */
-table th:first-child, table td:first-child {
-    padding: 8px 4px;
-}
