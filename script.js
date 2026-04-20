@@ -34,11 +34,24 @@ function switchTab(id) {
     render();
 }
 
-// 1文字ごとに再描画されないように修正
+// 並び替えロジック
+function moveSubject(index, direction, e) {
+    if(e) e.preventDefault();
+    const newIndex = index + direction;
+    if (newIndex < 0 || newIndex >= state.subjects.length) return;
+
+    // 要素の入れ替え
+    const temp = state.subjects[index];
+    state.subjects[index] = state.subjects[newIndex];
+    state.subjects[newIndex] = temp;
+
+    saveData();
+    render();
+}
+
 function updateGlobalTarget(val) {
     state.globalTargetRate = Math.max(0, Math.min(100, parseFloat(val) || 0));
     saveData();
-    // ここでrender()を呼ばないことで、入力中にキーボードが閉じるのを防ぐ
 }
 
 function updateSubject(id, field, val, e) {
@@ -47,7 +60,7 @@ function updateSubject(id, field, val, e) {
     if (sub) {
         if (field === 'name') {
             sub[field] = val;
-            renderTabs(); // タブ名だけ更新
+            renderTabs();
         } else {
             let num = Math.max(0, parseFloat(val) || 0);
             if(field === 'totalClasses' && num < (sub.present + sub.absent)) {
@@ -65,11 +78,10 @@ function changeCount(id, field, delta, e) {
     if (sub) {
         const nextVal = sub[field] + delta;
         if (delta > 0 && (sub.present + sub.absent + 1) > sub.totalClasses) return;
-        
         if (nextVal >= 0) {
             sub[field] = nextVal;
             saveData();
-            render(); // カウント変更時は数値が変わるので再描画
+            render();
         }
     }
 }
@@ -121,10 +133,16 @@ function render() {
     const content = document.getElementById('main-content');
     
     if (state.activeTab === 'home') {
-        let rows = state.subjects.map(sub => {
+        let rows = state.subjects.map((sub, index) => {
             const c = getCalc(sub);
             return `
                 <tr>
+                    <td>
+                        <div class="sort-btns">
+                            <button class="sort-btn" onclick="moveSubject(${index}, -1, event)" ${index === 0 ? 'disabled' : ''}>▲</button>
+                            <button class="sort-btn" onclick="moveSubject(${index}, 1, event)" ${index === state.subjects.length - 1 ? 'disabled' : ''}>▼</button>
+                        </div>
+                    </td>
                     <td style="text-align:left"><b>${sub.name}</b></td>
                     <td class="${c.isDanger ? 'status-ng' : 'status-ok'}">
                         ${c.rate}%
@@ -155,10 +173,11 @@ function render() {
                     <table>
                         <thead>
                             <tr>
+                                <th style="width:50px">順序</th>
                                 <th>教科名</th>
                                 <th>出席率</th>
                                 <th>全コマ</th>
-                                <th>残りコマ</th>
+                                <th>残り</th>
                                 <th>許容欠席</th>
                             </tr>
                         </thead>
@@ -200,7 +219,7 @@ function render() {
                     <div class="stat-item" style="grid-column: span 2; border-top: 1px solid #ddd; padding-top:10px;">
                         <div class="stat-label">あと何回休める？</div>
                         <div class="stat-value" style="color:${c.maxAbsentRaw < 0 ? 'var(--danger-color)' : 'var(--success-color)'}">
-                            ${c.maxAbsentRaw < 0 ? '達成不可' : c.allowAbsent + ' 回'}
+                            ${c.maxAbsentRaw < 0 ? 'もう休めません' : c.allowAbsent + ' 回'}
                         </div>
                     </div>
                 </div>
